@@ -10,8 +10,8 @@ const Owner = require("./models/user/ownerModel")
 const Tourist = require("./models/user/touristModel")
 
 
-const app = express()
-const port = 3000
+const app = express();
+const port = 3000;
 
 app.use(bodyParser.urlencoded({
     extended:true
@@ -19,7 +19,7 @@ app.use(bodyParser.urlencoded({
 
 app.use(express.static("public"));
 
-mongoose.connect('mongodb://localhost:27017/secondHomeDB');
+mongoose.connect('mongodb+srv://admin-gobind:atlas123@cluster0.5773w.mongodb.net/secondHomeDB');
 
 app.get("/homes",(req,res)=>{
     Home.find((err,foundHome)=>{
@@ -109,7 +109,7 @@ app.post("/payment" , (req,res) =>{
 
     const newPayment = new Payment({
         transDate: req.body.transDate,
-        bookingId: req.body.bookingIdk,
+        bookingId: req.body.bookingId,
         paymentId: req.body.paymentId
     });
 
