@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
+const passportLocalMongoose = require("passport-local-mongoose");
 
 const ownerSchema = new mongoose.Schema({
+    username: String,
     name: String,
     password: String,
     phone: Number,
@@ -9,4 +11,6 @@ const ownerSchema = new mongoose.Schema({
     homesId: Array
 });
 
-module.exports = mongoose.model("Tourist",ownerSchema);
+ownerSchema.plugin(passportLocalMongoose);
+
+module.exports = mongoose.model("OwnerDetails",ownerSchema);

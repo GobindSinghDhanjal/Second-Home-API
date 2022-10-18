@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const passportLocalMongoose = require("passport-local-mongoose");
 
 const touristSchema = new mongoose.Schema({
     name: String,
@@ -9,5 +10,7 @@ const touristSchema = new mongoose.Schema({
     prev_bookings: Array,
     review_id: Number
 });
+
+touristSchema.plugin(passportLocalMongoose);
 
 module.exports = mongoose.model("TouristDetails",touristSchema);

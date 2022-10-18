@@ -1,33 +1,28 @@
 const express = require("express");
 const router = express.Router();
 const Owner = require("../../models/user/ownerModel");
-
-router.route("/user/owner").get((req, res) => {
-  Owner.find((err, foundOwner) => {
-    if (!err) {
-      res.send(foundOwner);
-    } else {
-      res.send(err);
-    }
-  });
-});
+const passport = require("passport");
 
 router.route("/user/owner").post((req, res) => {
-  const newOwner = new Owner({
+  Owner.register({
+    username: req.body.username,
     name: req.body.name,
     phone: req.body.phone,
     email: req.body.email,
     address: req.body.address,
-    homesId: req.body.homeId,
-  });
-
-  newOwner.save((err) => {
-    if (!err) {
-      res.send("Successfully saved the data");
-    } else {
+    homesId: req.body.homesId
+  },
+  req.body.password,
+  (err, user) => {
+    if (err) {
       res.send(err);
+    } else {
+      passport.authenticate("local")(req, res, function () {
+        res.send("Successfully Registered Owner");
+      });
     }
-  });
+  }
+  );
 });
 
 module.exports = router;
