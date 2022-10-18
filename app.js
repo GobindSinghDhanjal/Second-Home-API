@@ -35,34 +35,31 @@ const authenticate = async (email, password) => {
     return null
   }
 
-const start = async () => {
-    const app = express()
   
     const admin = new AdminJS({})
   
     const adminRouter = AdminJSExpress.buildRouter(admin)
     app.use(admin.options.rootPath, adminRouter)
 
-    const mongoseDB = await mongoose.connect('mongodb+srv://admin-gobind:atlas123@cluster0.5773w.mongodb.net/secondHomeDB');
+    // const mongoseDB = await mongoose.connect('mongodb+srv://admin-gobind:atlas123@cluster0.5773w.mongodb.net/secondHomeDB');
   
-    const adminOptions = {
-        resources: [Home2],
-        databases : [mongoseDB]
-    }
+    // const adminOptions = {
+    //     resources: [Home2],
+    //     databases : [mongoseDB]
+    // }
 
     app.listen(PORT, () => {
       console.log(`AdminJS started on http://localhost:${PORT}${admin.options.rootPath}`)
     })
-  }
 
 
 app.use(bodyParser.urlencoded({
     extended:true
 }));
 
-// app.use(express.static("public"));
+app.use(express.static("public"));
 
-// mongoose.connect('mongodb+srv://admin-gobind:atlas123@cluster0.5773w.mongodb.net/secondHomeDB');
+mongoose.connect('mongodb+srv://admin-gobind:atlas123@cluster0.5773w.mongodb.net/secondHomeDB');
 
 app.get("/homes",(req,res)=>{
     Home.find((err,foundHome)=>{
@@ -269,8 +266,6 @@ app.post("/user/tourist" , (req,res) =>{
 app.get('/', (req, res) => {
   res.send('Hello World!')
 })
-
-start()
 
 // app.listen(PORT, () => {
 //   console.log("Server started on PORT " + PORT)
