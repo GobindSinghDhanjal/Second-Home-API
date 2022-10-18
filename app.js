@@ -2,24 +2,67 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const Home = require("./models/home/homeModel")
-const Booking = require("./models/booking/bookingModel")
-const Payment = require("./models/payment/paymentModel")
-const Review = require("./models/review/reviewModel")
-const Owner = require("./models/user/ownerModel")
-const Tourist = require("./models/user/touristModel")
+const Home = require("./models/home/homeModel");
+const Booking = require("./models/booking/bookingModel");
+const Payment = require("./models/payment/paymentModel");
+const Review = require("./models/review/reviewModel");
+const Owner = require("./models/user/ownerModel");
+const Tourist = require("./models/user/touristModel");
+const AdminJS = require('adminjs');
+const AdminJSExpress = require('@adminjs/express');
+const Connect = require('connect-pg-simple');
+const session = require('express-session');
+const AdminJSMongoose = require ('@adminjs/mongoose');
+const Home2 = require('./models/home/homeModel')
 
+AdminJS.registerAdapter({
+  Resource: AdminJSMongoose.Resource,
+  Database: AdminJSMongoose.Database,
+})
 
 const app = express();
-const port = 3000;
+const PORT = 3000;
+
+const DEFAULT_ADMIN = {
+    email: 'admin@example.com',
+    password: 'password',
+}
+
+const authenticate = async (email, password) => {
+    if (email === DEFAULT_ADMIN.email && password === DEFAULT_ADMIN.password) {
+      return Promise.resolve(DEFAULT_ADMIN)
+    }
+    return null
+  }
+
+const start = async () => {
+    const app = express()
+  
+    const admin = new AdminJS({})
+  
+    const adminRouter = AdminJSExpress.buildRouter(admin)
+    app.use(admin.options.rootPath, adminRouter)
+
+    const mongoseDB = await mongoose.connect('mongodb+srv://admin-gobind:atlas123@cluster0.5773w.mongodb.net/secondHomeDB');
+  
+    const adminOptions = {
+        resources: [Home2],
+        databases : [mongoseDB]
+    }
+
+    app.listen(PORT, () => {
+      console.log(`AdminJS started on http://localhost:${PORT}${admin.options.rootPath}`)
+    })
+  }
+
 
 app.use(bodyParser.urlencoded({
     extended:true
 }));
 
-app.use(express.static("public"));
+// app.use(express.static("public"));
 
-mongoose.connect('mongodb+srv://admin-gobind:atlas123@cluster0.5773w.mongodb.net/secondHomeDB');
+// mongoose.connect('mongodb+srv://admin-gobind:atlas123@cluster0.5773w.mongodb.net/secondHomeDB');
 
 app.get("/homes",(req,res)=>{
     Home.find((err,foundHome)=>{
@@ -227,6 +270,8 @@ app.get('/', (req, res) => {
   res.send('Hello World!')
 })
 
-app.listen(port, () => {
-  console.log("Server started on port " + port)
-})
+start()
+
+// app.listen(PORT, () => {
+//   console.log("Server started on PORT " + PORT)
+// })
