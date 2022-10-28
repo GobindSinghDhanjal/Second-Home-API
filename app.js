@@ -1,4 +1,5 @@
 const express = require("express");
+var cors = require('cors');
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
@@ -9,6 +10,8 @@ const session = require('express-session');
 const router = express.Router();
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
+
+const MAX_AGE = 1000 * 60 * 60 * 3;
 
 
 /////////////   REQUIRED ROUTES    //////////////////
@@ -29,7 +32,7 @@ const ownerModel = require("./models/user/ownerModel");
 
 AdminJS.registerAdapter(AdminJSMongoose);
 
-const PORT = 3000;
+const PORT = 4000;
 
 const DEFAULT_ADMIN = {
   email: "admin@example.com",
@@ -95,6 +98,8 @@ const start = async () => {
 
 start();
 
+app.use(cors());
+
 app.use(bodyParser.urlencoded({
     extended:true
 })); 
@@ -103,8 +108,13 @@ app.use(express.static("public"));
 
 app.use(session({
     secret:"The Secret",
-    resave: false,
-    saveUninitialized: false
+    resave: true,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: MAX_AGE,
+      sameSite: false,
+      secure: true
+    }
 }));
 
 app.use(passport.initialize());

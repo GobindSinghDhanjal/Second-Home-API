@@ -3,6 +3,7 @@ const router = express.Router();
 const Home = require("../../models/home/homeModel");
 
 router.route("/homes").get((req, res) => {
+
   Home.find((err, foundHome) => {
     if (!err) {
       res.send(foundHome);

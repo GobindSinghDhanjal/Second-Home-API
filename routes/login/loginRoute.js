@@ -16,12 +16,12 @@ router.route("/login/tourist").post((req, res) => {
             res.send("Wrong Username or password");
         }else{
             passport.authenticate("local")(req, res, function () {
-                res.send("Successfully Login Tourist");
+                username = tourist.username;
+                req.session.username = username;
+                res.send({msg : "success",username});
               });
         }
     });
-
-
 });
 
 router.route("/login/owner").post((req, res) => {

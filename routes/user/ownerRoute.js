@@ -3,6 +3,7 @@ const router = express.Router();
 const Owner = require("../../models/user/ownerModel");
 const passport = require("passport");
 
+
 router.route("/user/owner").post((req, res) => {
   Owner.register({
     username: req.body.username,

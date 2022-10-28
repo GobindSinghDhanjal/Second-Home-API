@@ -25,6 +25,33 @@ router.route("/user/tourist").post((req, res) => {
       }
     }
   );
+});
+
+router.route("/user/tourist/:touristUsername").get((req, res) => {
+
+  const touristUsername = req.params.touristUsername;
+
+  Tourist.findByUsername(touristUsername,(err, foundTourist)=>{
+    if(foundTourist){
+      res.send(foundTourist);
+    }else{
+      res.send(err);
+    }
+  })
+
+});
+
+router.route("/user/tourist/:touristUsername").put((req, res) => {
+
+  const touristUsername = req.params.touristUsername;
+
+  Tourist.findByUsername(touristUsername,(err, foundTourist)=>{
+    if(foundTourist){
+      res.send(foundTourist);
+    }else{
+      res.send(err);
+    }
+  })
 
 });
 
