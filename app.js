@@ -1,6 +1,6 @@
 const express = require("express");
 var cors = require('cors');
-const bodyParser = require("body-parser");
+// const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
@@ -91,7 +91,7 @@ const start = async () => {
 
   app.listen(PORT, () => {
     console.log(
-      `AdminJS started on http://localhost:${PORT}/${admin.options.rootPath}`
+      `AdminJS started on http://localhost:${PORT}${admin.options.rootPath}`
     );
   });
 };
@@ -100,9 +100,9 @@ start();
 
 app.use(cors());
 
-app.use(bodyParser.urlencoded({
-    extended:true
-})); 
+// app.use(bodyParser.urlencoded({
+//     extended:true
+// })); 
 
 app.use(express.static("public"));
 
