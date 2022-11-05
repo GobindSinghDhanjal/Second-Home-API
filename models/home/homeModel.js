@@ -2,10 +2,12 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const homeSchema = Schema({
+    home_id: Number,
     name: {
         type: String,
         required: [true, "name is required"]
     },
+    title: String,
     type: Array,
     location: String,
     rooms: Number,

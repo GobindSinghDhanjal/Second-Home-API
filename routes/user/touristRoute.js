@@ -48,6 +48,13 @@ router.route("/user/tourist/:touristUsername").put((req, res) => {
   Tourist.findByUsername(touristUsername,(err, foundTourist)=>{
     if(foundTourist){
       res.send(foundTourist);
+      Tourist.updateOne({username: touristUsername},{name: "acdsc"},(err, updates)=>{
+        if(err){
+          console.log(err); 
+        }else{
+          console.log(updates);
+        }
+      })
     }else{
       res.send(err);
     }

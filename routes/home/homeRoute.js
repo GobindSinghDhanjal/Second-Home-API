@@ -15,7 +15,9 @@ router.route("/homes").get((req, res) => {
 
 router.route("/homes").post((req, res) => {
   const newHome = new Home({
+    home_id: req.body.home_id,
     name: req.body.name,
+    title: req.body.title,
     type: req.body.type,
     location: req.body.location,
     rooms: req.body.rooms,

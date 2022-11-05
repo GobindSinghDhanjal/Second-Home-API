@@ -14,11 +14,11 @@ router.route("/booking").get((req, res) => {
 
 router.route("/booking").post((req, res) => {
   const newBooking = new Booking({
-    homeId: req.body.homeId,
-    touristId: req.body.touristId,
+    homeId: req.body.place_id,
+    touristUsername: req.body.username,
     checkIn: req.body.checkIn,
     checkOut: req.body.checkOut,
-    price: req.body.price,
+    amount: req.body.amount,
     status: req.body.status,
   });
 
