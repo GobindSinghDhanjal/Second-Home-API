@@ -16,8 +16,10 @@ router.route("/booking").post((req, res) => {
   const newBooking = new Booking({
     homeId: req.body.place_id,
     touristUsername: req.body.username,
+    touristEmail: req.body.user,
     checkIn: req.body.checkIn,
     checkOut: req.body.checkOut,
+    bookingDate: req.body.bookingDate,
     amount: req.body.amount,
     status: req.body.status,
   });

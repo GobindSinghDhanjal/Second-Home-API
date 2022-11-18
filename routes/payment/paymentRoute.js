@@ -6,6 +6,9 @@ require("dotenv").config();
 const Razorpay = require("razorpay");
 const Home = require("../../models/home/homeModel");
 const Booking = require("../../models/booking/bookingModel");
+const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
+const Tourist = require("../../models/user/touristModel");
 
 function calculatePricing(price, checkIn, checkOut) {
   const date1 = new Date(checkIn);
@@ -53,28 +56,39 @@ router.post("/payment/orders", async (req, res) => {
       key_secret: process.env.RAZORPAY_SECRET,
     });
 
-    const { username, place_id, checkIn, checkOut } = req.body;
+    // const { token, place_id, checkIn, checkOut } = req.body;
+    const { user, place_id, checkIn, checkOut } = req.body;
 
-    Home.findOne({ home_id: parseInt(place_id) }, async (err, data) => {
+    // const decodeToken = jwt.verify(token,process.env.SECRET);
+    // const username = decodeToken.username;
+    // console.log(username);
+
+    Home.findOne({ _id: place_id }, async (err, data) => {
       if (data) {
-        const price = calculatePricing(data.weekday_price, checkIn, checkOut);
-        const options = {
-          amount: price, // amount in smallest currency unit
-          currency: "INR",
-          receipt: "receipt_order_74394",
-          notes: {
-            username: username,
-            place_id: place_id,
-            checkIn: checkIn,
-            checkOut: checkOut,
-          },
-        };
+        // console.log(data);
+        const price = calculatePricing(data.price, checkIn, checkOut);
 
-        const order = await instance.orders.create(options);
+        try {
+          const options = {
+            amount: parseInt(price), // amount in smallest currency unit
+            currency: "INR",
+            receipt: "receipt_order_74394",
+            notes: {
+              // username: username,
+              user: user,
+              place_id: place_id,
+              checkIn: checkIn,
+              checkOut: checkOut,
+            },
+          };
+          const order = await instance.orders.create(options);
 
-        if (!order) return res.status(500).send("Some error occured");
+          if (!order) return res.status(500).send("Some error occured");
 
-        res.json(order);
+          res.json(order);
+        } catch (error) {
+          console.log(error);
+        }
       } else {
         console.log(err);
       }
@@ -95,7 +109,8 @@ router.post("/payment/success", async (req, res) => {
       amount,
     } = req.body;
 
-    const { username, place_id, checkIn, checkOut } = req.body.notes;
+    // const { username, place_id, checkIn, checkOut } = req.body.notes;
+    const { user, place_id, checkIn, checkOut } = req.body.notes;
 
     const shasum = crypto.createHmac("sha256", process.env.RAZORPAY_SECRET);
 
@@ -109,26 +124,49 @@ router.post("/payment/success", async (req, res) => {
     // THE PAYMENT IS LEGIT & VERIFIED
     // YOU CAN SAVE THE DETAILS IN YOUR DATABASE IF YOU WANT
 
+
+    const today = new Date();
+
     const newBooking = new Booking({
-      homeId: place_id,
-      touristUsername: username,
+      home_id: place_id,
+      // touristUsername: username,
+      touristEmail: user,
+      bookingDate: today,
       checkIn: checkIn,
       checkOut: checkOut,
       amount: amount,
     });
 
-    newBooking.save((err) => {
+    newBooking.save((err, booking) => {
       if (!err) {
         console.log("Successfully saved the data");
+
+        console.log(booking);
+
+        // Tourist.findOneAndUpdate(
+        //   { username: username },
+        //   { $push: { all_bookings: booking._id } },
+        //   (err, update) => {
+        //     if (!err) {
+        //       console.log("inside update");
+        //       console.log(update);
+        //     } else {
+        //       console.log("inside err");
+        //       console.log(err);
+        //     }
+        //   }
+        // );
+
+        res.json({
+          msg: "success",
+          orderId: razorpayOrderId,
+          paymentId: razorpayPaymentId,
+        });
       } else {
+        console.log("inside errorrr");
+        console.log(err);
         res.send(err);
       }
-    });
-
-    res.json({
-      msg: "success",
-      orderId: razorpayOrderId,
-      paymentId: razorpayPaymentId,
     });
   } catch (error) {
     res.status(500).send(error);
