@@ -1,17 +1,16 @@
 const express = require("express");
-var cors = require('cors');
+var cors = require("cors");
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const Connect = require('connect-pg-simple');
+const Connect = require("connect-pg-simple");
 
-const session = require('express-session');
+const session = require("express-session");
 const router = express.Router();
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 
 const MAX_AGE = 1000 * 60 * 60 * 3;
-
 
 /////////////   REQUIRED ROUTES    //////////////////
 const homeRoute = require("./routes/home/homeRoute");
@@ -86,8 +85,56 @@ const start = async () => {
       name: "adminjs",
     }
   );
+
   app.use(admin.options.rootPath, adminRouter);
 
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
+
+  ///////////////////////////////////////////
+
+  app.use(cors());
+
+  app.use(express.static("public"));
+
+  app.use(
+    session({
+      secret: "The Secret",
+      resave: true,
+      saveUninitialized: false,
+      cookie: {
+        maxAge: MAX_AGE,
+        sameSite: false,
+      },
+    })
+  );
+
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  passport.use(ownerModel.createStrategy());
+  passport.serializeUser(ownerModel.serializeUser());
+  passport.deserializeUser(ownerModel.deserializeUser());
+
+  passport.use(touristModel.createStrategy());
+  passport.serializeUser(touristModel.serializeUser());
+  passport.deserializeUser(touristModel.deserializeUser());
+
+  //////////////    ROUTES     ///////////////////
+  app.use(router);
+  app.use("/", homeRoute);
+  app.use("/", bookingRoute);
+  app.use("/", touristRoute);
+  app.use("/", ownerRoute);
+  app.use("/", paymentRoute);
+  app.use("/", reviewRoute);
+  app.use("/", loginRoute);
+
+  app.get("/", (req, res) => {
+    res.send("Hello World!");
+  });
+
+  /////////////////////////////////////
 
   app.listen(PORT, () => {
     console.log(
@@ -97,54 +144,3 @@ const start = async () => {
 };
 
 start();
-
-app.use(cors());
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-
-
-app.use(express.static("public"));
-
-app.use(session({
-    secret:"The Secret",
-    resave: true,
-    saveUninitialized: false,
-    cookie: {
-      maxAge: MAX_AGE,
-      sameSite: false,
-      secure: true
-    }
-}));
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.use(ownerModel.createStrategy());
-passport.serializeUser(ownerModel.serializeUser());
-passport.deserializeUser(ownerModel.deserializeUser());
-
-passport.use(touristModel.createStrategy());
-passport.serializeUser(touristModel.serializeUser());
-passport.deserializeUser(touristModel.deserializeUser());
-
-
-//////////////    ROUTES     ///////////////////
-app.use(router);
-app.use("/",homeRoute);
-app.use("/",bookingRoute);
-app.use("/",touristRoute);
-app.use("/",ownerRoute);
-app.use("/",paymentRoute);
-app.use("/",reviewRoute);
-app.use("/",loginRoute);
-
-
-
-
-
-
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
