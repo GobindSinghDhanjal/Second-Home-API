@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Booking = require("../../models/booking/bookingModel");
+const Home = require("../../models/home/homeModel");
 
 router.route("/booking").get((req, res) => {
   Booking.find((err, foundBooking) => {
@@ -31,6 +32,36 @@ router.route("/booking").post((req, res) => {
       res.send(err);
     }
   });
+});
+
+router.route("/all-bookings").post((req, res) => {
+
+  const touristEmail = req.body.touristEmail;
+
+
+  Booking.find({touristEmail: touristEmail},(err, foundBookings) => {
+    if (!err) {
+      res.send(foundBookings);
+    } else {
+      res.send(err);
+    }
+  });
+
+});
+
+router.route("/booking-detail").post((req, res) => {
+
+  const touristEmail = req.body.touristEmail;
+  const bookingId = req.body.bookingId;
+
+  Booking.findById(bookingId,(err, foundBooking) => {
+    if (!err) {
+      res.send(foundBooking);
+    } else {
+      res.send(err);
+    }
+  });
+
 });
 
 module.exports = router;

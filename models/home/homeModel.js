@@ -20,6 +20,7 @@ const homeSchema = Schema({
   address: String,
   placeImg: String,
   profileImg: String,
+  all_images:Array,
   rating: Number,
   bed: Number,
   washrooms: Number,

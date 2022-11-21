@@ -124,50 +124,64 @@ router.post("/payment/success", async (req, res) => {
     // THE PAYMENT IS LEGIT & VERIFIED
     // YOU CAN SAVE THE DETAILS IN YOUR DATABASE IF YOU WANT
 
-
     const today = new Date();
-
-    const newBooking = new Booking({
-      home_id: place_id,
-      // touristUsername: username,
-      touristEmail: user,
-      bookingDate: today,
-      checkIn: checkIn,
-      checkOut: checkOut,
-      amount: amount,
-    });
-
-    newBooking.save((err, booking) => {
+    
+    Home.findById(place_id, (err, home) => {
       if (!err) {
-        console.log("Successfully saved the data");
+        if (home) {
 
-        console.log(booking);
+          const newBooking = new Booking({
+            home_id: place_id,
+            // touristUsername: username,
+            touristEmail: user,
+            bookingDate: today,
+            checkIn: checkIn,
+            checkOut: checkOut,
+            amount: amount,
+            home: home,
+          });
 
-        // Tourist.findOneAndUpdate(
-        //   { username: username },
-        //   { $push: { all_bookings: booking._id } },
-        //   (err, update) => {
-        //     if (!err) {
-        //       console.log("inside update");
-        //       console.log(update);
-        //     } else {
-        //       console.log("inside err");
-        //       console.log(err);
-        //     }
-        //   }
-        // );
+          newBooking.save((err, booking) => {
+            if (!err) {
+              console.log("Successfully saved the data");
+      
+              console.log(booking);
+      
+              // Tourist.findOneAndUpdate(
+              //   { username: username },
+              //   { $push: { all_bookings: booking._id } },
+              //   (err, update) => {
+              //     if (!err) {
+              //       console.log("inside update");
+              //       console.log(update);
+              //     } else {
+              //       console.log("inside err");
+              //       console.log(err);
+              //     }
+              //   }
+              // );
+      
+              res.json({
+                msg: "success",
+                orderId: razorpayOrderId,
+                paymentId: razorpayPaymentId,
+              });
+            } else {
+              console.log("inside errorrr");
+              console.log(err);
+              res.send(err);
+            }
+          });
 
-        res.json({
-          msg: "success",
-          orderId: razorpayOrderId,
-          paymentId: razorpayPaymentId,
-        });
+        }
       } else {
-        console.log("inside errorrr");
-        console.log(err);
-        res.send(err);
+        return err;
       }
     });
+
+    
+
+
   } catch (error) {
     res.status(500).send(error);
   }
