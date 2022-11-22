@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const Home = require("../../models/home/homeModel");
+const axios = require("axios");
 
 router.route("/homes").get((req, res) => {
-
   Home.find((err, foundHome) => {
     if (!err) {
       res.send(foundHome);
@@ -14,23 +14,47 @@ router.route("/homes").get((req, res) => {
 });
 
 router.route("/home/:title").get((req, res) => {
-
   const title = req.params.title;
 
-  Home.findOne({title: title},(err, foundHome)=>{
-    if(err){
-      res.send(err)
-    }else{
-      if(foundHome){
-        res.send(foundHome);
-      }else{
-        res.send({msg: "not found"})
+  Home.findOne({ title: title }, async (err, foundHome) => {
+    if (err) {
+      res.send(err);
+    } else {
+      if (foundHome) {
+        const params = {
+          access_key: process.env.POSITION_STACK_KEY,
+          query: foundHome.location,
+        };
+
+        var latitude = null;
+        var longitude = null;
+
+        await axios
+          .get("http://api.positionstack.com/v1/forward", { params })
+          .then((response) => {
+            latitude = response.data.data[0].latitude;
+            longitude = response.data.data[0].longitude;
+          })
+          .catch((error) => {
+            console.log(error.response);
+          });
+
+        if (latitude != null) {
+          console.log("adsadf");
+          if (longitude != null) {
+            const coordinates = { latitude, longitude };   
+            res.send({ foundHome, coordinates });
+          }
+        } else {
+          res.send(foundHome);
+        }
+
+        // res.send(foundHome);
+      } else {
+        res.send({ msg: "not found" });
       }
-      
     }
-  })
-
-
+  });
 });
 
 router.route("/homes").post((req, res) => {
