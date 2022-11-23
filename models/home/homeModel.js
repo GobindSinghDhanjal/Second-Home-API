@@ -27,11 +27,16 @@ const homeSchema = Schema({
   bedroom: Number,
   home_id: Number,
   price: Number,
+  monthwise_season_factor: Number,
   weekday_price: Number,
   weekend_price: Number,
-  sevenPlusDayPrice: Number,
-  ThirtyDayPlusPrice: Number,
+  weekly_discount: Number,
+  monthly_discount: Number,
   reviews_id: Array,
+  coordinates: {
+    latitude:Number,
+    longitude:Number
+  },
 });
 
 // const Home = mongoose.model("Home",homeSchema);

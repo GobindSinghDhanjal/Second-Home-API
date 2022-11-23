@@ -23,28 +23,42 @@ router.route("/home/:title").get((req, res) => {
       if (foundHome) {
         const params = {
           access_key: process.env.POSITION_STACK_KEY,
-          query: foundHome.location,
+          query: foundHome.location + ",India",
         };
 
-        var latitude = null;
-        var longitude = null;
+        const coordinates = foundHome.coordinates;
 
-        await axios
-          .get("http://api.positionstack.com/v1/forward", { params })
-          .then((response) => {
-            latitude = response.data.data[0].latitude;
-            longitude = response.data.data[0].longitude;
-          })
-          .catch((error) => {
-            console.log(error.response);
-          });
+        if (
+          coordinates.latitude == 0 ||
+          coordinates.latitude == null ||
+          coordinates.longitude == 0 ||
+          coordinates.longitude == null
+        ) {
+          await axios
+            .get("http://api.positionstack.com/v1/forward", { params })
+            .then((response) => {
+              const newCoordinates = {
+                latitude: response.data.data[0].latitude,
+                longitude: response.data.data[0].longitude,
+              };
 
-        if (latitude != null) {
-          console.log("adsadf");
-          if (longitude != null) {
-            const coordinates = { latitude, longitude };   
-            res.send({ foundHome, coordinates });
-          }
+              Home.findOneAndUpdate(
+                { title: title },
+                { $set: { coordinates: newCoordinates } },
+                { new: true },
+                (err, doc) => {
+                  if (!err) {
+                    res.send(doc);
+                  } else {
+                    console.log("inside err");
+                    console.log(err);
+                  }
+                }
+              );
+            })
+            .catch((error) => {
+              console.log(error.response);
+            });
         } else {
           res.send(foundHome);
         }
