@@ -10,17 +10,60 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const Tourist = require("../../models/user/touristModel");
 
-function calculatePricing(price, checkIn, checkOut) {
+function calculatePricing(
+  price,
+  monthWiseSeasonFactor,
+  weekdayPrice,
+  weekendPrice,
+  weeklyDiscount,
+  monthlyDiscount,
+  checkIn,
+  checkOut
+) {
   const date1 = new Date(checkIn);
   const date2 = new Date(checkOut);
   const oneDay = 1000 * 60 * 60 * 24;
   const diffInTime = date2.getTime() - date1.getTime();
   const diffInDays = Math.round(diffInTime / oneDay);
 
-  const subTotalPrice = price * 100 * diffInDays;
-  const totalPrice = String(subTotalPrice + subTotalPrice * 0.062542);
+  const weekdayArray = [1, 2, 3, 4];
+  const weekendArray = [0, 5, 6];
 
-  return totalPrice;
+  function countCertainDays(days, d0, d1) {
+    var ndays = Math.round((d1 - d0) / (24 * 3600 * 1000));
+    console.log(ndays);
+    var sum = function (a, b) {
+      return a + Math.floor((ndays + ((d0.getDay() + 6 - b) % 7)) / 7);
+    };
+    return days.reduce(sum, 0);
+  }
+
+  const nweekends = countCertainDays(weekendArray, date1, date2);
+  const nweekdays = countCertainDays(weekdayArray, date1, date2);
+
+  console.log(diffInDays);
+  console.log("weekends : ");
+  console.log(nweekends);
+  console.log("weekday : ");
+  console.log(nweekdays);
+
+  var totalPrice = Math.round(
+    price *
+      monthWiseSeasonFactor *
+      (nweekdays * weekdayPrice + nweekends * weekendPrice)
+  );
+
+  console.log(totalPrice);
+
+  // const subTotalPrice = price * 100 * diffInDays;
+  // const totalPrice = String(subTotalPrice + subTotalPrice * 0.062542);
+
+  if (diffInDays > 30) {
+    return parseInt(totalPrice * monthlyDiscount);
+  } else if (diffInDays > 7) {
+    return parseInt(totalPrice * weeklyDiscount);
+  }
+  return parseInt(totalPrice);
 }
 
 router.route("/payment").get((req, res) => {
@@ -66,11 +109,22 @@ router.post("/payment/orders", async (req, res) => {
     Home.findOne({ _id: place_id }, async (err, data) => {
       if (data) {
         // console.log(data);
-        const price = calculatePricing(data.price, checkIn, checkOut);
+        const price = calculatePricing(
+          data.price,
+          data.monthwise_season_factor,
+          data.weekday_price,
+          data.weekend_price,
+          data.weekly_discount,
+          data.monthly_discount,
+          checkIn,
+          checkOut
+        );
+
+        console.log(typeof price);
 
         try {
           const options = {
-            amount: parseInt(price), // amount in smallest currency unit
+            amount: parseInt(price) * 100, // amount in smallest currency unit
             currency: "INR",
             receipt: "receipt_order_74394",
             notes: {
@@ -125,11 +179,10 @@ router.post("/payment/success", async (req, res) => {
     // YOU CAN SAVE THE DETAILS IN YOUR DATABASE IF YOU WANT
 
     const today = new Date();
-    
+
     Home.findById(place_id, (err, home) => {
       if (!err) {
         if (home) {
-
           const newBooking = new Booking({
             home_id: place_id,
             // touristUsername: username,
@@ -144,9 +197,9 @@ router.post("/payment/success", async (req, res) => {
           newBooking.save((err, booking) => {
             if (!err) {
               console.log("Successfully saved the data");
-      
+
               console.log(booking);
-      
+
               // Tourist.findOneAndUpdate(
               //   { username: username },
               //   { $push: { all_bookings: booking._id } },
@@ -160,7 +213,7 @@ router.post("/payment/success", async (req, res) => {
               //     }
               //   }
               // );
-      
+
               res.json({
                 msg: "success",
                 orderId: razorpayOrderId,
@@ -172,16 +225,11 @@ router.post("/payment/success", async (req, res) => {
               res.send(err);
             }
           });
-
         }
       } else {
         return err;
       }
     });
-
-    
-
-
   } catch (error) {
     res.status(500).send(error);
   }

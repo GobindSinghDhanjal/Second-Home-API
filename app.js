@@ -2,7 +2,7 @@ const express = require("express");
 var cors = require("cors");
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-
+require("dotenv").config();
 const Connect = require("connect-pg-simple");
 
 const session = require("express-session");
@@ -27,6 +27,29 @@ const AdminJSExpress = require("@adminjs/express");
 const AdminJSMongoose = require("@adminjs/mongoose");
 const touristModel = require("./models/user/touristModel");
 const ownerModel = require("./models/user/ownerModel");
+const bookingModel = require("./models/booking/bookingModel");
+const homeModel = require("./models/home/homeModel");
+
+
+
+// const files = require("./public/files")
+
+
+/////////////////  MULTER    ////////////////////////
+
+// const fs= require("fs");
+// const path = require("path");
+// const multer = require('multer');
+
+// var storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//       cb(null, 'uploads')
+//   },
+//   filename: (req, file, cb) => {
+//       cb(null, file.fieldname + '-' + Date.now())
+//   }
+// });
+// var upload = multer({ storage: storage });
 
 AdminJS.registerAdapter(AdminJSMongoose);
 
@@ -36,6 +59,13 @@ const DEFAULT_ADMIN = {
   email: "admin@example.com",
   password: "password",
 };
+
+////////////////////
+
+
+
+///////////////////////////////////
+
 
 const authenticate = async (email, password) => {
   if (email === DEFAULT_ADMIN.email && password === DEFAULT_ADMIN.password) {
@@ -47,18 +77,49 @@ const authenticate = async (email, password) => {
 const app = express();
 
 const start = async () => {
-  const mongooseDb = await mongoose.connect(
-    "mongodb+srv://admin-gobind:atlas123@cluster0.5773w.mongodb.net/secondHomeDB"
-  );
+  const mongooseDb = await mongoose.connect(process.env.MONGO_DB_URI);
 
-  const admin = new AdminJS({
-    databases: [mongooseDb],
-  });
+  const homeResourceOptions = {
+    properties: {
+      description: {
+        type: "richtext",
+        custom: {
+          modules: {
+            toolbar: [
+              ["bold", "italic"],
+              ["link", "formula"],
+            ],
+          },
+        },
+      },
+    },
+  }
+
+  // const admin = new AdminJS({
+  //   resources: [mongooseDb],
+  // });
+
+
+  const adminOptions = {
+    // We pass Category to `resources`
+    resources: [
+      {
+        resource: homeModel,
+        options: homeResourceOptions,
+      },
+      // files,
+      { resource: bookingModel },
+      { resource: touristModel },
+      { resource: ownerModel },
+    ],
+  };
+
+  const admin = new AdminJS(adminOptions);
 
   const ConnectSession = Connect(session);
   const sessionStore = new ConnectSession({
     conObject: {
-      connectionString: "postgres://postgres: @localhost:5432/postgres",
+      connectionString: process.env.POSTGRES_CONNECTION_STRING,
       ssl: process.env.NODE_ENV === "development",
     },
     tableName: "session",
@@ -96,6 +157,8 @@ const start = async () => {
   app.use(cors());
 
   app.use(express.static("public"));
+
+  // app.use(express.static(path.join(__dirname, '../public')));
 
   app.use(
     session({

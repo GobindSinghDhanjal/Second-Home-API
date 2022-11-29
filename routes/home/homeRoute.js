@@ -2,15 +2,82 @@ const express = require("express");
 const router = express.Router();
 const Home = require("../../models/home/homeModel");
 const axios = require("axios");
+const { response } = require("express");
 
-router.route("/homes").get((req, res) => {
-  Home.find((err, foundHome) => {
+const homesPerPage = 2;
+
+router.route("/homes/:homepage").get((req, res) => {
+  const homepage = req.params.homepage;
+
+  Home.find()
+    .skip((homepage - 1) * homesPerPage)
+    .limit(homesPerPage)
+    .then((err, foundHome) => {
+      if (!err) {
+        console.log(foundHome);
+        res.send(foundHome);
+      } else {
+        res.send(err);
+      }
+    });
+});
+
+router.route("/featuredHomes").get((req, res) => {
+  Home.find({ featured: true }).then((err, foundHome) => {
     if (!err) {
+      console.log(foundHome);
       res.send(foundHome);
     } else {
       res.send(err);
     }
   });
+});
+
+router.route("/homes/:location/:homepage").get((req, res) => {
+  const homepage = req.params.homepage;
+  const location = req.params.location;
+
+  if (location === "All") {
+    Home.find()
+      .skip((homepage - 1) * homesPerPage)
+      .limit(homesPerPage)
+      .then((err, foundHome) => {
+        if (!err) {
+          console.log(foundHome);
+          res.send(foundHome);
+        } else {
+          res.send(err);
+        }
+      });
+  } else {
+    Home.find({ location: location }, (err, homes) => {
+
+      console.log(homes.length);
+
+      if (homes.length >= 2) {
+        Home.find({ location: location })
+          .skip((homepage - 1) * homesPerPage)
+          .limit(homesPerPage)
+          .then((err, foundHome) => {
+            if (!err) {
+              console.log(foundHome);
+              res.send(foundHome);
+            } else {
+              res.send(err);
+            }
+          });
+      } else {
+        Home.find({ location: location }).then((err, foundHome) => {
+          if (!err) {
+            console.log(foundHome);
+            res.send(foundHome);
+          } else {
+            res.send(err);
+          }
+        });
+      }
+    });
+  }
 });
 
 router.route("/home/:title").get((req, res) => {
