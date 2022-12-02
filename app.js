@@ -53,7 +53,7 @@ const homeModel = require("./models/home/homeModel");
 
 AdminJS.registerAdapter(AdminJSMongoose);
 
-const PORT = 4000;
+
 
 const DEFAULT_ADMIN = {
   email: "admin@example.com",
@@ -199,9 +199,11 @@ const start = async () => {
 
   /////////////////////////////////////
 
-  app.listen(PORT, () => {
+
+
+  app.listen(process.env.PORT, () => {
     console.log(
-      `AdminJS started on http://localhost:${PORT}${admin.options.rootPath}`
+      `AdminJS started on http://localhost:${process.env.PORT}${admin.options.rootPath}`
     );
   });
 };
